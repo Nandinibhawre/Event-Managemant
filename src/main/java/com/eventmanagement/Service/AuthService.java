@@ -1,5 +1,10 @@
 package com.eventmanagement.Service;
 
+import com.eventmanagement.Model.Admin;
+import com.eventmanagement.Model.Organizer;
+import com.eventmanagement.Repository.AdminRepository;
+import com.eventmanagement.Repository.OrganizerRepository;
+import com.eventmanagement.Security.jwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,41 +20,105 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final com.eventmanagement.Security.jwtUtil jwtUtil;
+    private final AdminRepository adminRepo;
+    private final OrganizerRepository organizerRepo;
+    private final UserRepository userRepo;
+    private final PasswordEncoder encoder;
+    private final jwtUtil jwtUtil;
 
-    // ✅ Registration – NO TOKEN
+    // ✅ REGISTER
     public String register(RegisterRequest request) {
 
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already registered");
+        String role = request.getRole().toUpperCase();
+
+        if ("ADMIN".equals(role)) {
+            Admin admin = new Admin();
+            admin.setName(request.getName());
+            admin.setEmail(request.getEmail());
+            admin.setPassword(encoder.encode(request.getPassword()));
+            admin.setCreatedAt(LocalDateTime.now());
+            adminRepo.save(admin);
         }
 
-        User user = new User();
-        user.setFullName(request.getFullName());
-        user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole(request.getRole());
-        user.setCreatedAt(LocalDateTime.now());
+        else if ("ORGANIZER".equals(role)) {
+            Organizer org = new Organizer();
+            org.setName(request.getName());
+            org.setEmail(request.getEmail());
+            org.setPassword(encoder.encode(request.getPassword()));
+            org.setCreatedAt(LocalDateTime.now());
+            organizerRepo.save(org);
+        }
 
-        userRepository.save(user);
+        else {
+            User user = new User();
+            user.setName(request.getName());
+            user.setEmail(request.getEmail());
+            user.setPassword(encoder.encode(request.getPassword()));
+            user.setCreatedAt(LocalDateTime.now());
+            userRepo.save(user);
+        }
 
-        return "User registered successfully";
+        return "Registered Successfully";
     }
 
-    // ✅ Login – TOKEN GENERATED HERE
+    // ✅ LOGIN
     public AuthResponse login(LoginRequest request) {
 
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+        String role = request.getRole().toUpperCase();
+        String token;
+        String email;
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid email or password");
+        if ("ADMIN".equals(role)) {
+
+            Admin admin = adminRepo.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+
+            if (!encoder.matches(request.getPassword(), admin.getPassword()))
+                throw new RuntimeException("Invalid credentials");
+
+            email = admin.getEmail();
+
+            token = jwtUtil.generateToken(
+                    email,
+                    admin.getAdminid(),
+                    role
+            );
         }
 
-        String token = jwtUtil.generateToken(user.getEmail());
-   
-        return new AuthResponse(token, user.getEmail(),user.getRole());
+        else if ("ORGANIZER".equals(role)) {
+
+            Organizer org = organizerRepo.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+
+            if (!encoder.matches(request.getPassword(), org.getPassword()))
+                throw new RuntimeException("Invalid credentials");
+
+            email = org.getEmail();
+
+            token = jwtUtil.generateToken(
+                    email,
+                    org.getOrganizerid(),
+                    role
+            );
+        }
+
+        else {
+
+            User user = userRepo.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+
+            if (!encoder.matches(request.getPassword(), user.getPassword()))
+                throw new RuntimeException("Invalid credentials");
+
+            email = user.getEmail();
+
+            token = jwtUtil.generateToken(
+                    email,
+                    user.getUserid(),
+                    role
+            );
+        }
+
+        return new AuthResponse(token, email, role);
     }
 }

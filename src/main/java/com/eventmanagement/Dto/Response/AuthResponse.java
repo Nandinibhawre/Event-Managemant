@@ -1,20 +1,35 @@
 package com.eventmanagement.Dto.Response;
 
-import com.eventmanagement.Enum.Role;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Data
-@AllArgsConstructor
+@Getter
+@Setter
 @NoArgsConstructor
-public class AuthResponse {
+public class AuthResponse
+{
     private String token;
     private String email;
-    private Role role;
-    public AuthResponse(String token) {
+    private String role;
+
+    public AuthResponse(String token, String email, String role) {
         this.token = token;
+        this.email = email;
+        this.role = role;
     }
 
+    // getters
+    public String getToken() {
+        return token;
+    }
 
+    public String getEmail() {
+        return email;
+    }
+
+    public String getRole() {
+        return role;
+    }
 }
+
+
