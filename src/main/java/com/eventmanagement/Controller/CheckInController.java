@@ -16,10 +16,10 @@ public class CheckInController {
     private final OrderRepository orderRepo;
 
     // 4️⃣ CHECK-IN
-    @PostMapping("/{id}/checkin")
-    public String checkIn(@PathVariable String id) {
+    @PostMapping("/{orderId}/checkin")
+    public String checkIn(@PathVariable String orderId) {
 
-        Order order = orderRepo.findById(id)
+        Order order = orderRepo.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
         if (order.isCheckedIn()) {

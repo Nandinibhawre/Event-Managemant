@@ -3,6 +3,7 @@ package com.eventmanagement.Service;
 import com.eventmanagement.Model.Event;
 import com.eventmanagement.Repository.EventRepository;
 import lombok.RequiredArgsConstructor;
+import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,7 +18,8 @@ public class EventService {
         return eventRepo.findAll();
     }
 
-    public Event getEventById(String id) {
+    public Event getEventById(String id)
+    {
         return eventRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
     }

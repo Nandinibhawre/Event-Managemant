@@ -5,10 +5,10 @@ import com.eventmanagement.Model.Order;
 import com.eventmanagement.Service.EventService;
 import com.eventmanagement.Service.OrderService;
 import lombok.RequiredArgsConstructor;
+import org.bson.types.ObjectId;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
 @RestController
 @RequestMapping("/events")
 @RequiredArgsConstructor
@@ -20,7 +20,6 @@ public class AttendeeController {
     // 1️⃣ LIST EVENTS
     @GetMapping
     public List<Event> getAllEvents() {
-
         return eventService.getAllEvents();
     }
 
@@ -40,3 +39,5 @@ public class AttendeeController {
         return orderService.createOrder(id, quantity, token);
     }
 }
+
+

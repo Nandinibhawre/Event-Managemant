@@ -29,6 +29,8 @@ public class SecurityConfig {
                         .requestMatchers("/events/**").permitAll() // public events
                         .requestMatchers("/orders/**")
                         .authenticated()
+                        .requestMatchers("/organizer/**")
+                        .authenticated()
                 )
                 // 🔥 ADD JWT FILTER
                 .addFilterBefore(

@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 public class Organizer {
 
     @Id
-    private String organizerid;
+    private String organizerId;
 
     private String name;
     private String email;

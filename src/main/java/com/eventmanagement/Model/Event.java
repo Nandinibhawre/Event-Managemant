@@ -2,7 +2,9 @@ package com.eventmanagement.Model;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
@@ -11,7 +13,6 @@ import java.time.LocalDateTime;
 @Setter
 @Document(collection = "events")
 public class Event {
-
     @Id
     private String eventId;
 
@@ -23,7 +24,6 @@ public class Event {
     private double ticketPrice;
     private int totalTickets;
     private int availableTickets;
-
     private String organizerId;
 
     private LocalDateTime createdAt;

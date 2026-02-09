@@ -11,9 +11,7 @@ import java.time.LocalDateTime;
 @Getter
 @Document(collection = "orders")
 public class Order {
-
     @Id
-
     private String orderId;
 
     private String userId;
@@ -26,4 +24,4 @@ public class Order {
     private boolean checkedIn;
 
     private LocalDateTime orderTime;
-}
+   }

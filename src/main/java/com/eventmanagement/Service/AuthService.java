@@ -97,7 +97,7 @@ public class AuthService {
 
             token = jwtUtil.generateToken(
                     email,
-                    org.getOrganizerid(),
+                    org.getOrganizerId(),
                     role
             );
         }
