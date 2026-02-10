@@ -9,7 +9,6 @@ import com.eventmanagement.Dto.Request.LoginRequest;
 import com.eventmanagement.Dto.Request.RegisterRequest;
 import com.eventmanagement.Dto.Response.AuthResponse;
 import com.eventmanagement.Service.AuthService;
-
 import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/auth")
