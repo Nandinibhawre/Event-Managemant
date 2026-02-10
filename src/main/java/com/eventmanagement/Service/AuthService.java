@@ -26,15 +26,23 @@ public class AuthService {
     private final PasswordEncoder encoder;
     private final jwtUtil jwtUtil;
 
-    // ✅ REGISTER
     public String register(RegisterRequest request) {
 
         String role = request.getRole().toUpperCase();
+        String email = request.getEmail();
+
+        // ✅ EMAIL ALREADY EXISTS CHECK (ALL ROLES)
+        if (adminRepo.findByEmail(email).isPresent()
+                || organizerRepo.findByEmail(email).isPresent()
+                || userRepo.findByEmail(email).isPresent()) {
+
+            throw new RuntimeException("Email already registered with another role");
+        }
 
         if ("ADMIN".equals(role)) {
             Admin admin = new Admin();
             admin.setName(request.getName());
-            admin.setEmail(request.getEmail());
+            admin.setEmail(email);
             admin.setPassword(encoder.encode(request.getPassword()));
             admin.setCreatedAt(LocalDateTime.now());
             adminRepo.save(admin);
@@ -43,19 +51,23 @@ public class AuthService {
         else if ("ORGANIZER".equals(role)) {
             Organizer org = new Organizer();
             org.setName(request.getName());
-            org.setEmail(request.getEmail());
+            org.setEmail(email);
             org.setPassword(encoder.encode(request.getPassword()));
             org.setCreatedAt(LocalDateTime.now());
             organizerRepo.save(org);
         }
 
-        else {
+        else if ("USER".equals(role)) {
             User user = new User();
             user.setName(request.getName());
-            user.setEmail(request.getEmail());
+            user.setEmail(email);
             user.setPassword(encoder.encode(request.getPassword()));
             user.setCreatedAt(LocalDateTime.now());
             userRepo.save(user);
+        }
+
+        else {
+            throw new RuntimeException("Invalid role");
         }
 
         return "Registered Successfully";
@@ -65,60 +77,77 @@ public class AuthService {
     public AuthResponse login(LoginRequest request) {
 
         String role = request.getRole().toUpperCase();
-        String token;
-        String email;
+        String email = request.getEmail();
+        String password = request.getPassword();
 
+        String token;
+
+        // ===== ADMIN LOGIN =====
         if ("ADMIN".equals(role)) {
 
-            Admin admin = adminRepo.findByEmail(request.getEmail())
-                    .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+            Admin admin = adminRepo.findByEmail(email)
+                    .orElseThrow(() ->
+                            new RuntimeException("ADMIN account not found with this email")
+                    );
 
-            if (!encoder.matches(request.getPassword(), admin.getPassword()))
-                throw new RuntimeException("Invalid credentials");
-
-            email = admin.getEmail();
+            if (!encoder.matches(password, admin.getPassword())) {
+                throw new RuntimeException("Invalid ADMIN password");
+            }
 
             token = jwtUtil.generateToken(
-                    email,
+                    admin.getEmail(),
                     admin.getAdminid(),
                     role
             );
+
+            return new AuthResponse(token, admin.getEmail(), role);
         }
 
+        // ===== ORGANIZER LOGIN =====
         else if ("ORGANIZER".equals(role)) {
 
-            Organizer org = organizerRepo.findByEmail(request.getEmail())
-                    .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+            Organizer organizer = organizerRepo.findByEmail(email)
+                    .orElseThrow(() ->
+                            new RuntimeException("ORGANIZER account not found with this email")
+                    );
 
-            if (!encoder.matches(request.getPassword(), org.getPassword()))
-                throw new RuntimeException("Invalid credentials");
-
-            email = org.getEmail();
+            if (!encoder.matches(password, organizer.getPassword())) {
+                throw new RuntimeException("Invalid ORGANIZER password");
+            }
 
             token = jwtUtil.generateToken(
-                    email,
-                    org.getOrganizerId(),
+                    organizer.getEmail(),
+                    organizer.getOrganizerId(),
                     role
             );
+
+            return new AuthResponse(token, organizer.getEmail(), role);
         }
 
-        else {
+        // ===== USER LOGIN =====
+        else if ("USER".equals(role)) {
 
-            User user = userRepo.findByEmail(request.getEmail())
-                    .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+            User user = userRepo.findByEmail(email)
+                    .orElseThrow(() ->
+                            new RuntimeException("USER account not found with this email")
+                    );
 
-            if (!encoder.matches(request.getPassword(), user.getPassword()))
-                throw new RuntimeException("Invalid credentials");
-
-            email = user.getEmail();
+            if (!encoder.matches(password, user.getPassword())) {
+                throw new RuntimeException("Invalid USER password");
+            }
 
             token = jwtUtil.generateToken(
-                    email,
+                    user.getEmail(),
                     user.getUserid(),
                     role
             );
+
+            return new AuthResponse(token, user.getEmail(), role);
         }
 
-        return new AuthResponse(token, email, role);
+        // ===== INVALID ROLE =====
+        else {
+            throw new RuntimeException("Invalid role selected");
+        }
     }
 }
